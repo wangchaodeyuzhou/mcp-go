@@ -131,7 +131,7 @@ func (c *SSE) readSSE(ctx context.Context, reader io.ReadCloser) {
 
 // handleSSEEvent processes SSE events based on their type.
 // Handles 'endpoint' events for connection setup and 'message' events for JSON-RPC communication.
-func (c *SSE) handleSSEEvent(evt sseEvent) {
+func (c *SSE) handleSSEEvent(evt SSEEvent) {
 	switch evt.event {
 	case "endpoint":
 		endpoint, err := c.baseURL.Parse(evt.data)
