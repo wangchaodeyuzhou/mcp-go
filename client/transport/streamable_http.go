@@ -245,7 +245,7 @@ func (c *StreamableHTTP) handleSSEResponse(ctx context.Context, reader io.ReadCl
 		// only close responseChan after readingSSE()
 		defer close(responseChan)
 
-		c.readSSE(ctx, reader, func(evt SSEEvent) {
+		c.readSSE(ctx, reader, func(evt sseEvent) {
 
 			// (unsupported: batching)
 
@@ -288,7 +288,7 @@ func (c *StreamableHTTP) handleSSEResponse(ctx context.Context, reader io.ReadCl
 
 // readSSE reads the SSE stream(reader) and calls the handler for each event and data pair.
 // It will end when the reader is closed (or the context is done).
-func (c *StreamableHTTP) readSSE(ctx context.Context, reader io.ReadCloser, handler func(evt SSEEvent)) {
+func (c *StreamableHTTP) readSSE(ctx context.Context, reader io.ReadCloser, handler func(evt sseEvent)) {
 	if err := ReadSSEStream(ctx, reader, handler); err != nil {
 		select {
 		case <-ctx.Done():

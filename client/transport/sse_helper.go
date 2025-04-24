@@ -8,13 +8,13 @@ import (
 	"strings"
 )
 
-type SSEEvent struct {
+type sseEvent struct {
 	event string
 	data  string
 }
 
 // ReadSSEStream continuously reads the SSE stream and processes events.
-func ReadSSEStream(ctx context.Context, reader io.ReadCloser, onEvent func(event SSEEvent)) error {
+func ReadSSEStream(ctx context.Context, reader io.ReadCloser, onEvent func(event sseEvent)) error {
 	defer func(reader io.ReadCloser) {
 		err := reader.Close()
 		if err != nil {
@@ -27,7 +27,7 @@ func ReadSSEStream(ctx context.Context, reader io.ReadCloser, onEvent func(event
 
 	processEvent := func() {
 		if event.Len() > 0 || data.Len() > 0 {
-			onEvent(SSEEvent{event: event.String(), data: data.String()})
+			onEvent(sseEvent{event: event.String(), data: data.String()})
 			event.Reset()
 			data.Reset()
 		}
@@ -42,6 +42,7 @@ func ReadSSEStream(ctx context.Context, reader io.ReadCloser, onEvent func(event
 
 			switch {
 			case strings.HasPrefix(line, "event:"):
+				event.Reset()
 				event.WriteString(strings.TrimSpace(strings.TrimPrefix(line, "event:")))
 			case strings.HasPrefix(line, "data:"):
 				if data.Len() > 0 {
