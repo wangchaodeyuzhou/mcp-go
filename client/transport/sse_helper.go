@@ -22,7 +22,7 @@ func ReadSSEStream(ctx context.Context, reader io.ReadCloser, onEvent func(event
 		}
 	}(reader)
 
-	scanner := bufio.NewScanner(reader)
+	br := bufio.NewReader(reader)
 	var event, data strings.Builder
 
 	processEvent := func() {
@@ -33,12 +33,23 @@ func ReadSSEStream(ctx context.Context, reader io.ReadCloser, onEvent func(event
 		}
 	}
 
-	for scanner.Scan() {
+	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		default:
-			line := scanner.Text()
+			line, err := br.ReadString('\n')
+			if err != nil {
+				if err == io.EOF {
+					// Handle last event when EOF
+					processEvent()
+					return nil
+				}
+				return fmt.Errorf("error reading SSE stream: %w", err)
+			}
+
+			// Remove only newline markers
+			line = strings.TrimRight(line, "\r\n")
 
 			switch {
 			case strings.HasPrefix(line, "event:"):
@@ -54,8 +65,4 @@ func ReadSSEStream(ctx context.Context, reader io.ReadCloser, onEvent func(event
 			}
 		}
 	}
-	// EOF Handle the last event after reaching EOF
-	processEvent()
-
-	return scanner.Err()
 }
