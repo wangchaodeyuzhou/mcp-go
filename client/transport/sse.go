@@ -131,10 +131,10 @@ func (c *SSE) readSSE(ctx context.Context, reader io.ReadCloser) {
 
 // handleSSEEvent processes SSE events based on their type.
 // Handles 'endpoint' events for connection setup and 'message' events for JSON-RPC communication.
-func (c *SSE) handleSSEEvent(evt sseEvent) {
-	switch evt.event {
+func (c *SSE) handleSSEEvent(event sseEvent) {
+	switch event.event {
 	case "endpoint":
-		endpoint, err := c.baseURL.Parse(evt.data)
+		endpoint, err := c.baseURL.Parse(event.data)
 		if err != nil {
 			fmt.Printf("Error parsing endpoint URL: %v\n", err)
 			return
@@ -148,7 +148,7 @@ func (c *SSE) handleSSEEvent(evt sseEvent) {
 
 	case "message":
 		var baseMessage JSONRPCResponse
-		if err := json.Unmarshal([]byte(evt.data), &baseMessage); err != nil {
+		if err := json.Unmarshal([]byte(event.data), &baseMessage); err != nil {
 			fmt.Printf("Error unmarshaling message: %v\n", err)
 			return
 		}
@@ -156,7 +156,7 @@ func (c *SSE) handleSSEEvent(evt sseEvent) {
 		// Handle notification
 		if baseMessage.ID == nil {
 			var notification mcp.JSONRPCNotification
-			if err := json.Unmarshal([]byte(evt.data), &notification); err != nil {
+			if err := json.Unmarshal([]byte(event.data), &notification); err != nil {
 				return
 			}
 			c.notifyMu.RLock()
